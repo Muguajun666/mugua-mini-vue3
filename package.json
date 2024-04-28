@@ -2,20 +2,26 @@
   "name": "mugua-mini-vue3",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/mugua-mini-vue3.cjs.js",
+  "module": "lib/mugua-mini-vue3.esm.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "rollup -c rollup.config.js"
   },
   "keywords": [],
   "author": "",
+  "type": "module",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.24.4",
     "@babel/preset-env": "^7.24.4",
     "@babel/preset-typescript": "^7.24.1",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/jest": "^29.5.12",
     "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
+    "rollup": "^4.17.0",
+    "tslib": "^2.6.2",
     "typescript": "^5.4.5"
   }
 }
