@@ -4,6 +4,7 @@ import { ShapeFlags } from '../shared/ShapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { shouldUpdateComponent } from './componentUpdateUtils';
 import { createAppAPI } from './createApp';
+import { queueJobs } from './scheduler';
 import { Fragment, Text } from './vnode';
 
 export function createRenderer(options) {
@@ -235,7 +236,7 @@ export function createRenderer(options) {
         const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
 
         if (newIndexToOldIndexMap[i] === 0) {
-          patch(null, nextChild, container, parentComponent, anchor)
+          patch(null, nextChild, container, parentComponent, anchor);
         } else if (moved) {
           if (j < 0 || i !== increasingNewIndexSequence[j]) {
             hostInsert(nextChild.el, container, anchor);
@@ -313,18 +314,18 @@ export function createRenderer(options) {
     if (!n1) {
       mountComponent(n2, container, parentComponent, anchor);
     } else {
-      updateComponent(n1, n2)
+      updateComponent(n1, n2);
     }
   }
 
   function updateComponent(n1, n2) {
-    const instance = (n2.component = n1.component)
+    const instance = (n2.component = n1.component);
     if (shouldUpdateComponent(n1, n2)) {
-      instance.next = n2
-      instance.update()
+      instance.next = n2;
+      instance.update();
     } else {
-      n2.el = n1.el
-      instance.vnode = n2
+      n2.el = n1.el;
+      instance.vnode = n2;
     }
   }
 
@@ -334,46 +335,56 @@ export function createRenderer(options) {
     parentComponent: any,
     anchor: any
   ) {
-    const instance = (initialVNode.component =  createComponentInstance(initialVNode, parentComponent));
+    const instance = (initialVNode.component = createComponentInstance(
+      initialVNode,
+      parentComponent
+    ));
 
     setupComponent(instance);
     setupRenderEffect(instance, initialVNode, container, anchor);
   }
 
   function setupRenderEffect(instance: any, initialVNode, container, anchor) {
-    instance.update = effect(() => {
-      if (!instance.isMounted) {
-        // init
-        console.log('init');
-        const { proxy } = instance;
-        const subTree = (instance.subTree = instance.render.call(proxy));
+    instance.update = effect(
+      () => {
+        if (!instance.isMounted) {
+          // init
+          console.log('init');
+          const { proxy } = instance;
+          const subTree = (instance.subTree = instance.render.call(proxy));
 
-        patch(null, subTree, container, instance, anchor);
+          patch(null, subTree, container, instance, anchor);
 
-        initialVNode.el = subTree.el;
-        instance.isMounted = true;
-      } else {
-        console.log('update');
-        const { next, vnode } = instance
-        if (next) {
-          next.el = vnode.el
-          updateComponentPreRender(instance, next)
+          initialVNode.el = subTree.el;
+          instance.isMounted = true;
+        } else {
+          console.log('update');
+          const { next, vnode } = instance;
+          if (next) {
+            next.el = vnode.el;
+            updateComponentPreRender(instance, next);
+          }
+
+          const { proxy } = instance;
+          const subTree = instance.render.call(proxy);
+          const prevSubTree = instance.subTree;
+          instance.subTree = subTree;
+
+          patch(prevSubTree, subTree, container, instance, anchor);
         }
-
-        const { proxy } = instance;
-        const subTree = instance.render.call(proxy);
-        const prevSubTree = instance.subTree;
-        instance.subTree = subTree;
-
-        patch(prevSubTree, subTree, container, instance, anchor);
+      },
+      {
+        scheduler() {
+          queueJobs(instance.update)
+        },
       }
-    });
+    );
   }
 
   function updateComponentPreRender(instance, nextVNode) {
-    instance.vnode = nextVNode
-    instance.next = null
-    instance.props = nextVNode.props
+    instance.vnode = nextVNode;
+    instance.next = null;
+    instance.props = nextVNode.props;
   }
 
   return {

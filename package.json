@@ -10,7 +10,6 @@
   },
   "keywords": [],
   "author": "",
-  "type": "module",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.24.4",
