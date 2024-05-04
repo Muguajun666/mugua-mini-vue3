@@ -1,0 +1,12 @@
+{
+  "name": "@mugua-mini-vue3/shared",
+  "version": "1.0.0",
+  "description": "@mugua-mini-vue3/shared",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
